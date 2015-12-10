@@ -1,3 +1,9 @@
+# our executables
+/a03/pipe/pipe
+/a03/DoublePipe/pipe
+/a03/popen/popen
+/a03/skeleton/skel
+
 # Compiled Object files
 *.slo
 *.lo
