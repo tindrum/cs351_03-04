@@ -65,7 +65,7 @@ class hashTableCell
 		void lockCell()
 		{
 			/* TODO: Add code for locking the cell mutex e.g., 
-			 * declated at the buttom of this class 
+			 * declared at the buttom of this class 
 			 * e.g., pthread_mutex_lock(& <mutex name>)          
 			 */
 		}
