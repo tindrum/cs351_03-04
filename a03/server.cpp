@@ -162,9 +162,7 @@ pthread_cond_t threadPoolCondVar = PTHREAD_COND_INITIALIZER;
 
 pthread_mutex_t threadPoolMutex;
 
-bool threadPoolExit = false;
-bool inserterTimeToExit = false;
-bool incomingMessagesExit = false;
+bool threadExit = false;
 
 vector<pthread_t> threads;
 vector<pthread_t> inserterTids;
@@ -197,9 +195,7 @@ void tellAllThreadsToExit(int sig)
 	 * addNewRecords(), and processIncomingMessages().
 	 */
 	printf("SIGINT received\n");
-	threadPoolExit = true;
-	inserterTimeToExit = true;
-	incomingMessagesExit = true;
+	threadExit = true;
 	processIncomingMessages();
 }
 
@@ -438,7 +434,7 @@ void* threadPoolFunc(void* arg)
 	 * main thread will set flag to "true", which will cause all the worker threads
 	 * to break out of the loop.                          
 	 */
-	while(!threadPoolExit)
+	while(!threadExit)
 	{
 		/* TODO: Lock the mutex protecting the condition variable on which threads
 		 * sleep. The name of the mutex depends on what you declared it to be above.
@@ -457,7 +453,7 @@ void* threadPoolFunc(void* arg)
 		 * while(id==-1 && !flag) where flag is assumed to be the name of the flag
 		 * indicating that it is time to exit.                                     
 		 */
-		while(id == -1 && !threadPoolExit)
+		while(id == -1 && !threadExit)
 		{
 
 
@@ -589,7 +585,7 @@ void processIncomingMessages()
 	 * and will call pthread_join() to wait for all threads to exit.                       
 	 */
 
-	while(!incomingMessagesExit)
+	while(!threadExit)
 	{
 
 		/* Receive the record request from the client. */
@@ -683,7 +679,7 @@ void* addNewRecords(void* arg)
 	 */                              	
 
 	/* Keep generating random records */	
-	while(!inserterTimeToExit)
+	while(!threadExit)
 	{
 		usleep(0.5);
 
