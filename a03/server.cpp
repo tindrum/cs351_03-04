@@ -250,7 +250,7 @@ void addToHashTable(const record& rec)
 
 
 /**
- * Adds a record to hashtable
+ * Retrieve a record from hashtable  (edited by DgH, I think it was wrong before)
  * @param id the id of the record to retrieve
  * @return - the record from hashtable if exists;
  * otherwise returns a record with id field set to -1
