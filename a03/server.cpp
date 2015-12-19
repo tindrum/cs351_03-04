@@ -34,7 +34,6 @@ struct record
 /**
  * The structure of a hashtable cell
  */
- // cooment to test git
 class hashTableCell
 {
 	/* Public members */
