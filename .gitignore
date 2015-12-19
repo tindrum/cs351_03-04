@@ -4,6 +4,10 @@
 /a03/popen/popen
 /a03/skeleton/skel
 
+/a03/client
+/a03/server
+/a03/pthread
+
 # Compiled Object files
 *.slo
 *.lo
