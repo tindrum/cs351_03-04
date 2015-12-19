@@ -7,6 +7,8 @@
 /a03/client
 /a03/server
 /a03/pthread
+/a03/condvar
+/a03/signal
 
 # Compiled Object files
 *.slo
