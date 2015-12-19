@@ -16,6 +16,8 @@
 #include "msg.h"
 using namespace std;
 
+sig_atomic_t signaled = 0;
+
 /* The record in the hash table */
 struct record
 {
