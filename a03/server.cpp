@@ -45,7 +45,7 @@ class hashTableCell
 		hashTableCell()
 		{
 			/* TODO: Initialize the mutex (which you will declare at the end of this
-			 * class; please see the buttom of the class) using pthread_mutex_init()
+			 * class; please see the bottom of the class) using pthread_mutex_init()
 			 */
 		}
 
@@ -65,7 +65,7 @@ class hashTableCell
 		void lockCell()
 		{
 			/* TODO: Add code for locking the cell mutex e.g., 
-			 * declared at the buttom of this class 
+			 * declared at the bottom of this class
 			 * e.g., pthread_mutex_lock(& <mutex name>)          
 			 */
 		}
@@ -76,7 +76,7 @@ class hashTableCell
 		void unlockCell()
 		{
 			/* TODO: Add code for unlocking the cell mutex
-			 * declared at the buttom of this class.
+			 * declared at the bottom of this class.
 			 * e.g., pthread_mutex_unlock(&<mutex name>) 
 			 */
 		}
@@ -350,7 +350,7 @@ int getIdsToLookUp()
 	/* The id */
 	int id = -1;
 
-	/* TODO: Lock the mutex proctecting the idsToLookUpList */
+	/* TODO: Lock the mutex protecting the idsToLookUpList */
 
 	/* Remove id from the list if exists */
 	if(!idsToLookUpList.empty()) 
@@ -393,7 +393,7 @@ void* threadPoolFunc(void* arg)
 	/* Just a variable to store the id of the requested record. */
 	int id = -1; 
 
-	/* Continously loop: sleep until woken up, remove ids from idsToLookUp,
+	/* Continuously loop: sleep until woken up, remove ids from idsToLookUp,
 	 * look up the records associated with the ids (in the hashtable), and go back
 	 * to sleep.  
 	 * 
@@ -409,7 +409,7 @@ void* threadPoolFunc(void* arg)
 		 * sleep. The name of the mutex depends on what you declared it to be above.
 		 */
 
-		/* Remove the requsted record id from the idsToLookUp list. */
+		/* Remove the requested record id from the idsToLookUp list. */
 		id = getIdsToLookUp();	
 
 		/* If getIdsToLookUp() has returned a -1, it means there are no records to 
@@ -688,16 +688,16 @@ int main(int argc, char** argv)
 	 * the database.
 	 * 
 	 * Rationale:
-	 * A group of threads inserting records is meant to similate updates to the 
+	 * A group of threads inserting records is meant to simulate updates to the
 	 * database that involve addition of new records. Many real-world databases
-	 * are updated with new data while simultenously being queried for existing 
+	 * are updated with new data while simultaneously being queried for existing
 	 * data. Hence, the setup will give us a real-world glance at the world of 
 	 * parallel databases.                             
 	 */
 	createInserterThreads();
 
 	/* This function will be invoked by the main thread. In it, it will will 
-	 * continously wait to receive a record request from the client (i.e., an id
+	 * continuously wait to receive a record request from the client (i.e., an id
 	 * of the requested record). When it receives the request, it will add the 
 	 * received id to the idsToLookUp list, will wake up one of the worker
 	 * threads, and will then wait to receive more requests.
