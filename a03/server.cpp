@@ -179,7 +179,7 @@ void tellAllThreadsToExit(int sig)
 	 * addNewRecords(), and processIncomingMessages().
 	 */   
 
-
+	signaled = 1;
 
 }
 
