@@ -666,7 +666,7 @@ int main(int argc, char** argv)
 	 * always generate the same value. This is how multiple
 	 * processes can connect to the same queue.
 	 */
-	key_t key = ftok("/bin/ls", 'O');
+	key_t key = ftok("keyfile", 'O');
 
 	/* Error checks */
 	if(key < 0)
