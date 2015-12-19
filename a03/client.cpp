@@ -27,7 +27,7 @@ int main()
 	/* Was the key allocation successful ? */
 	if(key < 0) { perror("ftok"); exit(-1); }	
 
-	/* Connect to the message queue; fail if the	there is no message
+	/* Connect to the message queue; fail if there is no message
 	 * queue associated with this key. This function returns the id of the queue.
 	 * It basically calls msgget() behind the scenes (see msg.h)    
 	 */	
