@@ -405,8 +405,10 @@ void* threadPoolFunc(void* arg)
 	 * main thread will set flag to "true", which will cause all the worker threads
 	 * to break out of the loop.                          
 	 */
-	while(true)
+	while(!signaled)
 	{
+		cout << "threadPoolFunc() called" << endl;
+
 		/* TODO: Lock the mutex protecting the condition variable on which threads
 		 * sleep. The name of the mutex depends on what you declared it to be above.
 		 */
@@ -538,8 +540,10 @@ void processIncomingMessages()
 	 * and will call pthread_join() to wait for all threads to exit.                       
 	 */
 
-	while(true)
+	while(!signaled)
 	{
+
+		cout << "processIncomingMessages() called" << endl;
 
 		/* Receive the record request from the client. */
 		recvMessage(msqid, msg, CLIENT_TO_SERVER_MSG);
@@ -617,8 +621,9 @@ void* addNewRecords(void* arg)
 	 */                              	
 
 	/* Keep generating random records */	
-	while(true)
+	while(!signaled)
 	{
+		cout << "adding threads called" << endl;
 		/* Generate a random record. */
 		rec = generateRandomRecord();
 
