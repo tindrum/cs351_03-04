@@ -641,7 +641,8 @@ int main(int argc, char** argv)
 	 * generated when the user presses Ctrl-c to call tellAllThreadsToExit()
 	 * function.
 	 */	
-
+	void (*sigint_handler)(int);
+	sigint_handler = signal (SIGINT, tellAllThreadsToExit);
 
 	/* Populate the hash table */
 	populateHashTable(argv[1]);
