@@ -12,6 +12,7 @@
 #include <list>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include "msg.h"
 using namespace std;
