@@ -1,14 +1,32 @@
-BONUS 1:
+Assignment 3 Bonus 1 for CS 351 Section ##:
 -------
 
 Implement a multi-threaded quicksort that uses a thread pool similar to the hash table program.
 
+
+#### Your name and email address.
+Project members:
+Christopher Tarazi - christarazi@csu.fullerton.edu
+Daniel Henderson   - tindrum@csu.fullerton.edu
+
+
+#### The programming language you used (i.e., C or C++).
+This program is written in C++11.
+
+
+#### How to execute your program.
+To execute this program:
+`./quicksort <integer>`
+e.g., to sort one thousand integers, use 
+`./quicksort 1000`
+
+
+#### Whether you implemented the extra credit.
+This is our implementation for BONUS 1
+
+##### General Information
 Christopher Tarazi implemented the logic for the quicksort algorithm for both the threaded and brute-force functions.
 Daniel Henderson wrote `Makefile` and `README.md`. 
-
-Our program requires an integer number of elements as an argument on the command line:
-
-`./quicksort 1000`
 
 The passed-in integer generates that many random integers, and each integer is pushed to two vectors:
 
@@ -37,9 +55,22 @@ When it completes, the total time is computed by getting the final time-hack, as
 
 Before exit of `main()`, both total times are printed to the terminal.
 
-#### SPEED BENEFIT
+
+#### Anything special about your submission that we should take note of.
+##### SPEED BENEFIT
 
 In our runs, no vector of integers below one billion elements showed improved performance for the threaded version over the serial version.
 This may be because we are not properly taking our threads from a thread pool. 
 
 _TODO: see if thread pool is used, implement if not, update timing paragraph if speed improves (or worsens)_
+
+_TODO: implement as a template class that can work with any class/object that can be ordered, i.e. implements less-than, equal, and greater-than methods for comparison.
+
+
+Write a README file (text file, do not submit a .doc file) which contains
+– Your name and email address.
+– The programming language you used (i.e., C or C++).
+– How to execute your program.
+– Whether you implemented the extra credit.
+– Anything special about your submission that we should take note of.
+
