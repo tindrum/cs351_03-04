@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
 		{
 			/** close the ends of child process pipes */
-			if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END] < 0))
+			if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END]) < 0)
 			{
 				perror("error closing write end of parentToChildPipe");
 				exit(-1);
@@ -128,18 +128,18 @@ int main(int argc, char** argv)
 			computeHash(hashProgs[hashAlgNum]);
 
 
-			// if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END] < 0))
-			// {
-			// 	perror("error closing ends on child cleanup");
-			// 	exit(-1);
-			// }
+			if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END]) < 0)
+			{
+				perror("error closing ends on child cleanup");
+				exit(-1);
+			}
 			exit(0);
 		}
 		
 		/* I am the parent */
 
 		/**  close the ends of parent process pipes **/
-		if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END] < 0))
+		if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END]) < 0)
 		{
 			perror("error closing pipe ends in parent process");
 			exit(-1);
@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END] < 0))
+	if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END]) < 0)
 	{
 		perror("error closing parent pipe ends at cleanup");
 		exit(-1);
