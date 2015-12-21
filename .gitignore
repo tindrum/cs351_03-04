@@ -9,6 +9,8 @@
 /a03/pthread
 /a03/server
 /a03/signal
+/a04/popen/popen
+bonus_one
 
 # Compiled Object files
 *.slo

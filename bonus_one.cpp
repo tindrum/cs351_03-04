@@ -141,16 +141,17 @@ int main(int argc, char *argv[])
 	chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
 	chrono::duration<double> elapsed_seconds_threaded = end-start;
 
+	data = {0, len-1};
 	start = chrono::high_resolution_clock::now();
 	serialQuickSort(&data);
 	end = chrono::high_resolution_clock::now();
 	chrono::duration<double> elapsed_seconds_serial = end-start;
 
 
-	for (int i = 0; i < len; ++i)
-	{
-		printf("%i ", threaded_arr[i]);
-	}
+	// for (int i = 0; i < len; ++i)
+	// {
+	// 	printf("%i ", threaded_arr[i]);
+	// }
 	printf("threaded quick sort time taken: %f\n", elapsed_seconds_threaded.count());
 	printf("serial quick sort time taken: %f\n", elapsed_seconds_serial.count());
 
