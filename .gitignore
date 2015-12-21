@@ -13,6 +13,9 @@
 /a04/skeleton/skel.o
 /a04/skeleton/skel
 
+# Bonus One ignores
+/bonus_one/quicksort
+
 # Compiled Object files
 *.slo
 *.lo

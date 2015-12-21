@@ -1,13 +1,18 @@
+CC = g++
+CCFLAGS = -Wall
+CCVERSION = -std=c++11
+
 all: quicksort
 
 quicksort:	bonus_one.o
-	g++ bonus_one.o -o -lpthread -std=c++11 bonus_one
+	$(CC)  $(CCFLAGS) $(CCVERSION) -o quicksort bonus_one.o -lpthread 
 
 bonus_one.o:	bonus_one.cpp
-	g++ -c bonus_one.cpp
+	$(CC) $(CCFLAGS) $(CCVERSION) -c  bonus_one.cpp  -lpthread
 
 clean:
-	rm -rf quicksort bonus_one.o
+	- rm -f quicksort
+	- rm -f bonus_one.o
 
 
 # Originally compiled with 	

@@ -77,6 +77,8 @@ void* threadedQuickSort(void* args)
 	}
 	else
 		threadedQuickSort(&rightPart);
+
+	return 0;
 }
 
 void* serialQuickSort(void* args)
@@ -110,6 +112,8 @@ void* serialQuickSort(void* args)
 
 	Data rightPart = {i, right};
 	serialQuickSort(&rightPart);
+
+	return 0;
 }
 
 
