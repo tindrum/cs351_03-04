@@ -128,11 +128,11 @@ int main(int argc, char** argv)
 			computeHash(hashProgs[hashAlgNum]);
 
 
-			if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END] < 0))
-			{
-				perror("error closing ends on child cleanup");
-				exit(-1);
-			}
+			// if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END] < 0))
+			// {
+			// 	perror("error closing ends on child cleanup");
+			// 	exit(-1);
+			// }
 			exit(0);
 		}
 		
