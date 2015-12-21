@@ -67,10 +67,4 @@ _TODO: see if thread pool is used, implement if not, update timing paragraph if 
 _TODO: implement as a template class that can work with any class/object that can be ordered, i.e. implements less-than, equal, and greater-than methods for comparison.
 
 
-Write a README file (text file, do not submit a .doc file) which contains
-– Your name and email address.
-– The programming language you used (i.e., C or C++).
-– How to execute your program.
-– Whether you implemented the extra credit.
-– Anything special about your submission that we should take note of.
 
