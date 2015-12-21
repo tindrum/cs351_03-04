@@ -126,6 +126,14 @@ int main(int argc, char** argv)
 			
 			/* Compute the hash */
 			computeHash(hashProgs[hashAlgNum]);
+
+
+			if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END] < 0))
+			{
+				perror("error closing ends on child cleanup");
+				exit(-1);
+			}
+			exit(0);
 		}
 		
 		/* I am the parent */
@@ -168,6 +176,11 @@ int main(int argc, char** argv)
 			exit(-1);
 		}
 	}
-	
+
+	if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END] < 0))
+	{
+		perror("error closing parent pipe ends at cleanup");
+		exit(-1);
+	}
 	return 0;
 }
