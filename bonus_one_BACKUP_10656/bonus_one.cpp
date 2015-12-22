@@ -12,6 +12,8 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <cstdio>
+#include <cerrno>
 
 using namespace std;
 
@@ -32,10 +34,20 @@ list<Data> workerQueue;
 
 bool threadPoolExit = false;
 
-pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t vectorMutex;
+
+
+// using more robust mutex creation method
+// pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t threadPoolMutex;
+
+// pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t workerQueueMutex;
+
+// pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_cond_t condVar;
+// pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
 
 void* threadPoolQuickSort(void* args)
 {
@@ -49,12 +61,12 @@ void* threadPoolQuickSort(void* args)
 	int pivot = threaded_arr[(left + right) / 2];
 
 	// Partitioning the array
-	while (i <= j) 
+	while (i <= j)
 	{
 		while (threaded_arr[i] < pivot) i++;
 		while (threaded_arr[j] > pivot) j--;
 
-		if (i <= j) 
+		if (i <= j)
 		{
 			tmp = threaded_arr[i];
 			threaded_arr[i] = threaded_arr[j];
@@ -64,7 +76,7 @@ void* threadPoolQuickSort(void* args)
 		}
 	}
 	pthread_mutex_unlock(&vectorMutex);
-	
+
 	// Recursive call to sorting the left partition
 	Data leftPart = {left, j};
 	if (left < j)
@@ -88,6 +100,7 @@ void* threadPoolQuickSort(void* args)
 		pthread_mutex_unlock(&workerQueueMutex);
 		threadPoolQuickSort(&rightPart);
 	}
+	// return 0;
 }
 
 
@@ -100,12 +113,12 @@ void* threadPoolQuickSort(void* args)
 // 	int tmp;
 // 	int pivot = threaded_arr[(left + right) / 2];
 
-// 	while (i <= j) 
+// 	while (i <= j)
 // 	{
 // 		while (threaded_arr[i] < pivot) i++;
 // 		while (threaded_arr[j] > pivot) j--;
 
-// 		if (i <= j) 
+// 		if (i <= j)
 // 		{
 // 			tmp = threaded_arr[i];
 // 			threaded_arr[i] = threaded_arr[j];
@@ -114,7 +127,7 @@ void* threadPoolQuickSort(void* args)
 // 			j--;
 // 		}
 // 	}
-	
+
 // 	pthread_t tid1, tid2;
 
 // 	Data leftPart = {left, j};
@@ -126,7 +139,7 @@ void* threadPoolQuickSort(void* args)
 // 		pthread_create(&tid1, NULL, threadedQuickSort, &leftPart);
 // 		pthread_join(tid1, NULL);
 // 	}
-// 	else 
+// 	else
 // 		threadedQuickSort(&leftPart);
 
 // 	Data rightPart = {i, right};
@@ -153,12 +166,12 @@ void* threadPoolQuickSort(void* args)
 // 	int tmp;
 // 	int pivot = serial_arr[(left + right) / 2];
 
-// 	while (i <= j) 
+// 	while (i <= j)
 // 	{
 // 		while (serial_arr[i] < pivot) i++;
 // 		while (serial_arr[j] > pivot) j--;
 
-// 		if (i <= j) 
+// 		if (i <= j)
 // 		{
 // 			tmp = serial_arr[i];
 // 			serial_arr[i] = serial_arr[j];
@@ -175,10 +188,10 @@ void* threadPoolQuickSort(void* args)
 // 	serialQuickSort(&rightPart);
 // }
 
-/* 
+/*
  * Each thread is born into this function. They will sleep the the condition variable <condVar>
  * until the threadPoolQuickSort signals to wake one of the threads. WHen a thread is waken,
- * it will look at the workerQueue for work. If it finds some, it will do it. If not, it will go 
+ * it will look at the workerQueue for work. If it finds some, it will do it. If not, it will go
  * back to sleep on <condVar>.
  */
 void* threadPool(void* args)
@@ -259,7 +272,37 @@ int main(int argc, char *argv[])
 
 	int len = threaded_arr.size();
 	printf("length = %i\n", len);
-	
+
+
+	// Initialize mutexes and condition variable
+	if (pthread_mutex_init(&vectorMutex, NULL) != 0)
+	{
+		perror("mutex not created");
+		exit(-1);
+
+	}
+
+
+	if (pthread_mutex_init(&threadPoolMutex, NULL) != 0)
+	{
+		perror("threadPoolMutex not created");
+		exit(-1);
+
+	}
+
+
+	if (pthread_mutex_init(&workerQueueMutex, NULL) != 0)
+	{
+		perror("workerQueueMutex not created");
+		exit(-1);
+	}
+
+
+	if (pthread_cond_init(&condVar, NULL) != 0)
+	{
+		perror("condVar not created");
+		exit(-1);
+	}
 	// Timing the runtimes of threaded vs serial quick sort
 
 	// Data data = {0, len-1};
@@ -288,7 +331,7 @@ int main(int argc, char *argv[])
 	// printf("\n");
 
 
-	Data data = {0, threaded_arr.size()-1};
+	Data data = {0, static_cast<int>(threaded_arr.size()-1)};
 	pthread_t tid[4];
 
 	// Create four threads (arbitrary number for now)
@@ -310,14 +353,18 @@ int main(int argc, char *argv[])
 	}
 
 	// Check last five elements of array to make sure it's sorted
-	for (int i = threaded_arr.size()-5; i < threaded_arr.size(); ++i)
+	for (int i = 0; i < static_cast<int>(threaded_arr.size()); )
 	{
-		printf("%i ", threaded_arr[i]);
+		printf("%i \n", threaded_arr[i]);
+		if ( num < 1000) // if less than a thousand elements, display all of them
+			i++;
+		else
+			i += i % 1000; // jump by 1000th of the elements
 	}
 	printf("\n");
 
 	len = threaded_arr.size();
 	printf("length = %i\n", len);
-	
+
 	return 0;
 }

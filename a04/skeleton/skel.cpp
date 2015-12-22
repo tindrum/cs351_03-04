@@ -100,7 +100,12 @@ int main(int argc, char** argv)
 	for(int hashAlgNum = 0; hashAlgNum < HASH_PROG_ARRAY_SIZE; ++hashAlgNum)
 	{
 
-		/** TODO: create two pipes **/		
+		/** create two pipes **/
+		if(pipe(parentToChildPipe) < 0 || pipe(childToParentPipe) < 0)
+		{
+			perror("error creating pipes");
+			exit(-1);
+		}
 		
 		/* Fork a child process and save the id */
 		if((pid = fork()) < 0)
@@ -112,15 +117,33 @@ int main(int argc, char** argv)
 		else if(pid == 0)
 
 		{
-			/** TODO: close the unused ends of two pipes **/
+			/** close the ends of child process pipes */
+			if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END]) < 0)
+			{
+				perror("error closing write end of parentToChildPipe");
+				exit(-1);
+			}
 			
 			/* Compute the hash */
 			computeHash(hashProgs[hashAlgNum]);
+
+
+			if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END]) < 0)
+			{
+				perror("error closing ends on child cleanup");
+				exit(-1);
+			}
+			exit(0);
 		}
 		
 		/* I am the parent */
 
-		/** TODO: close the unused ends of two pipes. **/
+		/**  close the ends of parent process pipes **/
+		if( close(parentToChildPipe[READ_END]) < 0 || close(childToParentPipe[WRITE_END]) < 0)
+		{
+			perror("error closing pipe ends in parent process");
+			exit(-1);
+		}
 
 		/* The buffer to hold the string received from the child */	
 		char hashValue[HASH_VALUE_LENGTH];
@@ -153,6 +176,11 @@ int main(int argc, char** argv)
 			exit(-1);
 		}
 	}
-	
+
+	if( close(parentToChildPipe[WRITE_END]) < 0 || close(childToParentPipe[READ_END]) < 0)
+	{
+		perror("error closing parent pipe ends at cleanup");
+		exit(-1);
+	}
 	return 0;
 }

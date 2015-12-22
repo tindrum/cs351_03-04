@@ -5,3 +5,6 @@ skel:	skel.o
 
 skel.o:	skel.cpp
 	g++ -c skel.cpp
+
+clean:
+	rm -rf skel skel.o

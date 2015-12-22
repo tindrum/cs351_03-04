@@ -4,6 +4,18 @@
 /a03/popen/popen
 /a03/skeleton/skel
 
+/a03/client
+/a03/condvar
+/a03/pthread
+/a03/server
+/a03/signal
+/a04/popen/popen
+/a04/skeleton/skel.o
+/a04/skeleton/skel
+
+# Bonus One ignores
+/bonus_one/quicksort
+
 # Compiled Object files
 *.slo
 *.lo
