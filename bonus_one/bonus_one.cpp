@@ -12,6 +12,8 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <cstdio>
+#include <cerrno>
 
 using namespace std;
 
@@ -33,17 +35,18 @@ list<Data> workerQueue;
 bool threadPoolExit = false;
 
 pthread_mutex_t vectorMutex;
-pthread_mutex_init(vectorMutex, NULL);
+
+
 // using more robust mutex creation method
 // pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t threadPoolMutex;
-pthread_mutex_init(threadPoolMutex, NULL);
+
 // pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t workerQueueMutex;
-pthread_mutex_init(workerQueueMutex, NULL);
+
 // pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+
 pthread_cond_t condVar;
-pthread_cond_init(condVar, NULL);
 // pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
 
 void* threadPoolQuickSort(void* args)
@@ -270,6 +273,36 @@ int main(int argc, char *argv[])
 	int len = threaded_arr.size();
 	printf("length = %i\n", len);
 
+
+	// Initialize mutexes and condition variable
+	if (pthread_mutex_init(&vectorMutex, NULL) != 0)
+	{
+		perror("mutex not created");
+		exit(-1);
+
+	}
+
+
+	if (pthread_mutex_init(threadPoolMutex, NULL) != 0)
+	{
+		perror("threadPoolMutex not created");
+		exit(-1);
+
+	}
+
+
+	if (pthread_mutex_init(workerQueueMutex, NULL) != 0)
+	{
+		perror("workerQueueMutex not created");
+		exit(-1);
+	}
+
+
+	if (pthread_cond_init(condVar, NULL) != 0)
+	{
+		perror("condVar not created");
+		exit(-1);
+	}
 	// Timing the runtimes of threaded vs serial quick sort
 
 	// Data data = {0, len-1};
