@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 	// Insert random ints into our array
 	for (int i = 0; i < num; ++i)
 	{
-		int item = rand()%num;
+		int item = rand()%(num*10);
 		threaded_arr.push_back(item);
 		//serial_arr.push_back(item);
 	}
@@ -352,7 +352,9 @@ int main(int argc, char *argv[])
 		pthread_join(tid[i], NULL);
 	}
 
-	// Check last five elements of array to make sure it's sorted
+	printf("\n\nSorted Output\n");
+	// Check elements of array in order to make sure it's sorted
+	// skips lots of elements if array > 1000 elements, displays 1000, spaced out
 	for (int i = 0; i < static_cast<int>(threaded_arr.size()); )
 	{
 		printf("%i \n", threaded_arr[i]);
