@@ -33,17 +33,17 @@ list<Data> workerQueue;
 bool threadPoolExit = false;
 
 pthread_mutex_t vectorMutex;
-pthread_mutex_init(*vectorMutex, NULL);
+pthread_mutex_init(vectorMutex, NULL);
 // using more robust mutex creation method
 // pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t threadPoolMutex;
-pthread_mutex_init(*threadPoolMutex, NULL);
+pthread_mutex_init(threadPoolMutex, NULL);
 // pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t workerQueueMutex;
-pthread_mutex_init(*workerQueueMutex, NULL);
+pthread_mutex_init(workerQueueMutex, NULL);
 // pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condVar;
-pthread_cond_init(*condVar, NULL);
+pthread_cond_init(condVar, NULL);
 // pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
 
 void* threadPoolQuickSort(void* args)
