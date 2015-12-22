@@ -31,6 +31,7 @@ vector<int> serial_arr;
 list<Data> workerQueue;
 
 bool threadPoolExit = false;
+int threadCounter = 0;
 
 pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -43,6 +44,21 @@ void* threadPoolQuickSort(void* args)
 	Data data = *((Data*) args);
 	int left = data.left, right = data.right;
 	int i = left, j = right;
+	
+	if (left >= right)
+	{
+	    if (workerQueue.empty()) 
+	    {
+	        threadPoolExit = true;
+	        pthread_cond_broadcast(&condVar);
+	    }
+	    else if (!workerQueue.empty())
+	    {
+	        pthread_cond_signal(&condVar);
+	    }
+	    
+	    return NULL;
+	}
 
 	pthread_mutex_lock(&vectorMutex);
 	int tmp;
@@ -288,7 +304,6 @@ int main(int argc, char *argv[]) {
 	// printf("\n");
 
 
-	Data data = {0, threaded_arr.size() - 1};
 	pthread_t tid[4];
 
 	// Create four threads (arbitrary number for now)
@@ -297,8 +312,13 @@ int main(int argc, char *argv[]) {
 		//printf("created thread %i\n", i);
 	}
 
+	// push first indices of the vector bounds
+	Data data = {0, threaded_arr.size() - 1};
+	workerQueue.push_back(data);
+	pthread_cond_signal(&condVar);
+	
 	// Begin quicksort on main thread to do the partition and adding work to queue
-	threadPoolQuickSort(&data);
+	//threadPoolQuickSort(&data);
 
 	//pthread_cond_broadcast(&condVar);
 	for (int i = 0; i < 4; ++i) {
