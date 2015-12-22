@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	if (pthread_mutex_init(threadPoolMutex, NULL) != 0)
+	if (pthread_mutex_init(&threadPoolMutex, NULL) != 0)
 	{
 		perror("threadPoolMutex not created");
 		exit(-1);
@@ -291,14 +291,14 @@ int main(int argc, char *argv[])
 	}
 
 
-	if (pthread_mutex_init(workerQueueMutex, NULL) != 0)
+	if (pthread_mutex_init(&workerQueueMutex, NULL) != 0)
 	{
 		perror("workerQueueMutex not created");
 		exit(-1);
 	}
 
 
-	if (pthread_cond_init(condVar, NULL) != 0)
+	if (pthread_cond_init(&condVar, NULL) != 0)
 	{
 		perror("condVar not created");
 		exit(-1);
