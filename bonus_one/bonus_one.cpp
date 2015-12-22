@@ -334,6 +334,21 @@ int main(int argc, char *argv[]) {
 	printf("length = %i\n", len);
 
 	printf("%i\n", isSorted());
-
+	
+	// add printout of all elements if size of array < 100
+	printf("Output threaded_arr\n");
+	for (int i = 0; i < threaded_arr.size();)
+	{
+		if(threaded_arr.size() < 100)
+		{
+			i++;
+			printf("%i\n", threaded_arr[i]);
+		}
+		else
+		{	
+			printf("%i\n", threaded_arr[i]);
+			i += threaded_arr.size()%100;
+		}
+	}
 	return 0;
 }
