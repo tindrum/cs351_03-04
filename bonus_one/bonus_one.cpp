@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 		if ( num < 1000) // if less than a thousand elements, display all of them
 			i++;
 		else
-			i += i % 1000 // jump by 1000th of the elements
+			i += i % 1000; // jump by 1000th of the elements
 	}
 	printf("\n");
 
