@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 	// Insert random ints into our array
 	for (int i = 0; i < num; ++i)
 	{
-		int item = rand()%1000000;
+		int item = rand()%num;
 		threaded_arr.push_back(item);
 		//serial_arr.push_back(item);
 	}
