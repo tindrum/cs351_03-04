@@ -18,8 +18,8 @@ using namespace std;
 // Our data structure to hold the left, right index of the array we're sorting
 struct Data
 {
-	long left;
-	long right;
+	int left;
+	int right;
 };
 
 // threaded_arr: array for the the threaded version of quicksort
@@ -88,6 +88,7 @@ void* threadPoolQuickSort(void* args)
 		pthread_mutex_unlock(&workerQueueMutex);
 		threadPoolQuickSort(&rightPart);
 	}
+	return 0;
 }
 
 
@@ -288,7 +289,7 @@ int main(int argc, char *argv[])
 	// printf("\n");
 
 
-	Data data = {0, threaded_arr.size()-1};
+	Data data = {0, static_cast<int>(threaded_arr.size()-1)};
 	pthread_t tid[4];
 
 	// Create four threads (arbitrary number for now)
@@ -310,7 +311,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Check last five elements of array to make sure it's sorted
-	for (int i = threaded_arr.size()-5; i < threaded_arr.size(); ++i)
+	for (int i = static_cast<int>(threaded_arr.size())-5; i < static_cast<int>(threaded_arr.size()); ++i)
 	{
 		printf("%i ", threaded_arr[i]);
 	}
