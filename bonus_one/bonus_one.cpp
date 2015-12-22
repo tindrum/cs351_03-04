@@ -43,7 +43,7 @@ void* threadPoolQuickSort(void* args)
 	Data data = *((Data*) args);
 	int left = data.left, right = data.right;
 	int i = left, j = right;
-
+	
 	pthread_mutex_lock(&vectorMutex);
 	int tmp;
 	int pivot = threaded_arr[(left + right) / 2];
@@ -87,6 +87,24 @@ void* threadPoolQuickSort(void* args)
 		pthread_cond_signal(&condVar);
 		pthread_mutex_unlock(&workerQueueMutex);
 		//threadPoolQuickSort(&rightPart);
+	}
+
+	// This is key; our termination condition
+	if (i >= j)
+	{
+	    if (workerQueue.empty()) 
+	    {
+	        threadPoolExit = true;
+	        pthread_cond_broadcast(&condVar);
+	        //printf("all threads must exit now\n");
+	    }
+	    else if (!workerQueue.empty())
+	    {
+	        pthread_cond_signal(&condVar);
+	        //printf("threads continuing\n");
+	    }
+	    
+	    return NULL;
 	}
 }
 
@@ -201,8 +219,9 @@ void* threadPool(void* args)
 				workerQueue.pop_front();
 				pthread_mutex_unlock(&workerQueueMutex);
 				threadPoolQuickSort(&work);
-				printf("2 thread did work\n");
+				//printf("thread did work after wake\n");
 			}
+			pthread_mutex_unlock(&threadPoolMutex);
 		}
 		if (!workerQueue.empty())
 		{
@@ -211,7 +230,7 @@ void* threadPool(void* args)
 			workerQueue.pop_front();
 			pthread_mutex_unlock(&workerQueueMutex);
 			threadPoolQuickSort(&work);
-			printf("1 thread did work\n");
+			//printf("thread did work when queue was not empty\n");
 			pthread_mutex_unlock(&threadPoolMutex);
 		}
 	}
@@ -241,17 +260,18 @@ bool isSorted()
 
 int main(int argc, char *argv[]) {
 	// Sanity check for args
-	if (argc != 2) {
-		printf("usage %s <number of elements>\n", argv[0]);
+	if (argc != 3) {
+		printf("usage %s <number of elements> <number of threads>\n", argv[0]);
 		return -1;
 	}
 
 	srand(time(0));
 
-	int num = atoi(argv[1]);
+	int numberOfElements = atoi(argv[1]);
+	int numberOfThreads = atoi(argv[2]);
 
 	// Insert random ints into our array
-	for (int i = 0; i < num; ++i) {
+	for (int i = 0; i < numberOfElements; ++i) {
 		int item = rand() % 1000000;
 		threaded_arr.push_back(item);
 		//serial_arr.push_back(item);
@@ -288,20 +308,24 @@ int main(int argc, char *argv[]) {
 	// printf("\n");
 
 
-	Data data = {0, threaded_arr.size() - 1};
-	pthread_t tid[4];
+	pthread_t tid[numberOfThreads];
 
-	// Create four threads (arbitrary number for now)
-	for (int i = 0; i < 4; ++i) {
+	// Create <numberOfThreads> threads
+	for (int i = 0; i < numberOfThreads; ++i) {
 		pthread_create(&tid[i], NULL, threadPool, NULL);
 		//printf("created thread %i\n", i);
 	}
 
-	// Begin quicksort on main thread to do the partition and adding work to queue
-	threadPoolQuickSort(&data);
+	// Push first indices of the vector bounds
+	Data data = {0, threaded_arr.size() - 1};
+	workerQueue.push_back(data);
 
-	//pthread_cond_broadcast(&condVar);
-	for (int i = 0; i < 4; ++i) {
+	// Begin timing
+	chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();
+	pthread_cond_signal(&condVar);
+
+	// Join all threads together
+	for (int i = 0; i < numberOfThreads; ++i) {
 		printf("thread: %i empty: %i\n", i, workerQueue.empty());
 		for (auto &&elem : workerQueue) {
 			printf("{%i, %i}", elem.left, elem.right);
@@ -310,10 +334,15 @@ int main(int argc, char *argv[]) {
 		pthread_join(tid[i], NULL);
 	}
 
+	// End timing
+	chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
+	chrono::duration<double> elapsed_seconds_threaded = end-start;
+
 	len = threaded_arr.size();
 	printf("length = %i\n", len);
 
-	printf("%i\n", isSorted());
+	printf("\nsorted: %i\n", isSorted());
 
+	printf("time taken %f\n", elapsed_seconds_threaded.count());
 	return 0;
 }
