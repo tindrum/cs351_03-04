@@ -353,9 +353,13 @@ int main(int argc, char *argv[])
 	}
 
 	// Check last five elements of array to make sure it's sorted
-	for (int i = static_cast<int>(threaded_arr.size())-5; i < static_cast<int>(threaded_arr.size()); ++i)
+	for (int i = 0; i < static_cast<int>(threaded_arr.size()); )
 	{
 		printf("%i ", threaded_arr[i]);
+		if ( num < 1000) // if less than a thousand elements, display all of them
+			i++;
+		else
+			i += i % 1000 // jump by 1000th of the elements
 	}
 	printf("\n");
 
