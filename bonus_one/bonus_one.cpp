@@ -88,7 +88,7 @@ void* threadPoolQuickSort(void* args)
 		pthread_mutex_unlock(&workerQueueMutex);
 		threadPoolQuickSort(&rightPart);
 	}
-	return 0;
+	// return 0;
 }
 
 
