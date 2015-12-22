@@ -12,8 +12,6 @@
 #include <string>
 #include <fstream>
 #include <chrono>
-#include <cstdio>
-#include <cerrno>
 
 using namespace std;
 
@@ -34,20 +32,10 @@ list<Data> workerQueue;
 
 bool threadPoolExit = false;
 
-pthread_mutex_t vectorMutex;
-
-
-// using more robust mutex creation method
-// pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t threadPoolMutex;
-
-// pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t workerQueueMutex;
-
-// pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_cond_t condVar;
-// pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
 
 void* threadPoolQuickSort(void* args)
 {
@@ -86,7 +74,7 @@ void* threadPoolQuickSort(void* args)
 		//printf("sent signal\n");
 		pthread_cond_signal(&condVar);
 		pthread_mutex_unlock(&workerQueueMutex);
-		threadPoolQuickSort(&leftPart);
+		//threadPoolQuickSort(&leftPart);
 	}
 
 	// Recursive call to sorting the right partition
@@ -98,9 +86,8 @@ void* threadPoolQuickSort(void* args)
 		//printf("sent signal\n");
 		pthread_cond_signal(&condVar);
 		pthread_mutex_unlock(&workerQueueMutex);
-		threadPoolQuickSort(&rightPart);
+		//threadPoolQuickSort(&rightPart);
 	}
-	// return 0;
 }
 
 
@@ -197,9 +184,26 @@ void* threadPoolQuickSort(void* args)
 void* threadPool(void* args)
 {
 	Data work;
-	while (!workerQueue.empty())
+	while (!threadPoolExit)
 	{
 		pthread_mutex_lock(&threadPoolMutex);
+
+		while (!threadPoolExit && workerQueue.empty())
+		{
+			// Threads sleep here on <condVar>
+			pthread_cond_wait(&condVar, &threadPoolMutex);
+
+			// Do work as soon as a thread is signaled to wake (or if there's a spurious wakeup).
+			if (!workerQueue.empty())
+			{
+				pthread_mutex_lock(&workerQueueMutex);
+				work = workerQueue.front();
+				workerQueue.pop_front();
+				pthread_mutex_unlock(&workerQueueMutex);
+				threadPoolQuickSort(&work);
+				printf("2 thread did work\n");
+			}
+		}
 		if (!workerQueue.empty())
 		{
 			pthread_mutex_lock(&workerQueueMutex);
@@ -207,53 +211,37 @@ void* threadPool(void* args)
 			workerQueue.pop_front();
 			pthread_mutex_unlock(&workerQueueMutex);
 			threadPoolQuickSort(&work);
+			printf("1 thread did work\n");
+			pthread_mutex_unlock(&threadPoolMutex);
 		}
-		else
-		{
-			while (!threadPoolExit && workerQueue.empty())
-			{
-				// Threads sleep here on <condVar>
-				pthread_cond_wait(&condVar, &threadPoolMutex);
-
-				// Do work as soon as a thread is signaled to wake (or if there's a spurious wakeup).
-				if (!workerQueue.empty())
-				{
-					pthread_mutex_lock(&workerQueueMutex);
-					work = workerQueue.front();
-					workerQueue.pop_front();
-					pthread_mutex_unlock(&workerQueueMutex);
-					threadPoolQuickSort(&work);
-				}
-			}
-
-		}
-		pthread_mutex_unlock(&threadPoolMutex);
 	}
 
-	// if (!workerQueue.empty())
-	// {
-	// 	printf("why?\n");
-	// 	pthread_mutex_lock(&workerQueueMutex);
-	// 	work = workerQueue.front();
-	// 	workerQueue.pop_front();
-	// 	pthread_mutex_unlock(&workerQueueMutex);
-	// 	threadPoolQuickSort(&work);
-	// }
-	// else
-	// {
-	// 	pthread_exit(0);
-	// }
-
 	// Exit if we have reached the end of the loop.
-	pthread_exit(0);
+	pthread_mutex_unlock(&threadPoolMutex);
+	if (workerQueue.empty())
+	{
+		threadPoolExit = true;
+		pthread_exit(0);
+	}
+}
+
+bool isSorted()
+{
+	for (int i = 0; i < threaded_arr.size()-1; ++i)
+	{
+		if (threaded_arr[i] > threaded_arr[i+1])
+		{
+			printf("%i > %i\n", threaded_arr[i], threaded_arr[i+1]);
+			return false;
+		}
+	}
+	return true;
 }
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	// Sanity check for args
-	if (argc != 2)
-	{
+	if (argc != 2) {
 		printf("usage %s <number of elements>\n", argv[0]);
 		return -1;
 	}
@@ -263,9 +251,8 @@ int main(int argc, char *argv[])
 	int num = atoi(argv[1]);
 
 	// Insert random ints into our array
-	for (int i = 0; i < num; ++i)
-	{
-		int item = rand()%(num*10);
+	for (int i = 0; i < num; ++i) {
+		int item = rand() % 1000000;
 		threaded_arr.push_back(item);
 		//serial_arr.push_back(item);
 	}
@@ -273,36 +260,6 @@ int main(int argc, char *argv[])
 	int len = threaded_arr.size();
 	printf("length = %i\n", len);
 
-
-	// Initialize mutexes and condition variable
-	if (pthread_mutex_init(&vectorMutex, NULL) != 0)
-	{
-		perror("mutex not created");
-		exit(-1);
-
-	}
-
-
-	if (pthread_mutex_init(&threadPoolMutex, NULL) != 0)
-	{
-		perror("threadPoolMutex not created");
-		exit(-1);
-
-	}
-
-
-	if (pthread_mutex_init(&workerQueueMutex, NULL) != 0)
-	{
-		perror("workerQueueMutex not created");
-		exit(-1);
-	}
-
-
-	if (pthread_cond_init(&condVar, NULL) != 0)
-	{
-		perror("condVar not created");
-		exit(-1);
-	}
 	// Timing the runtimes of threaded vs serial quick sort
 
 	// Data data = {0, len-1};
@@ -331,12 +288,11 @@ int main(int argc, char *argv[])
 	// printf("\n");
 
 
-	Data data = {0, static_cast<int>(threaded_arr.size()-1)};
+	Data data = {0, threaded_arr.size() - 1};
 	pthread_t tid[4];
 
 	// Create four threads (arbitrary number for now)
-	for (int i = 0; i < 4; ++i)
-	{
+	for (int i = 0; i < 4; ++i) {
 		pthread_create(&tid[i], NULL, threadPool, NULL);
 		//printf("created thread %i\n", i);
 	}
@@ -344,29 +300,20 @@ int main(int argc, char *argv[])
 	// Begin quicksort on main thread to do the partition and adding work to queue
 	threadPoolQuickSort(&data);
 
-	pthread_cond_broadcast(&condVar);
-	for (int i = 0; i < 4; ++i)
-	{
-		printf("thread % i\n", i);
-		printf("%i\n", workerQueue.empty());
+	//pthread_cond_broadcast(&condVar);
+	for (int i = 0; i < 4; ++i) {
+		printf("thread: %i empty: %i\n", i, workerQueue.empty());
+		for (auto &&elem : workerQueue) {
+			printf("{%i, %i}", elem.left, elem.right);
+		}
+		printf("\n");
 		pthread_join(tid[i], NULL);
 	}
 
-	printf("\n\nSorted Output\n");
-	// Check elements of array in order to make sure it's sorted
-	// skips lots of elements if array > 1000 elements, displays 1000, spaced out
-	for (int i = 0; i < static_cast<int>(threaded_arr.size()); )
-	{
-		printf("%i \n", threaded_arr[i]);
-		if ( num < 1000) // if less than a thousand elements, display all of them
-			i++;
-		else
-			i += i % 1000; // jump by 1000th of the elements
-	}
-	printf("\n");
-
 	len = threaded_arr.size();
 	printf("length = %i\n", len);
+
+	printf("%i\n", isSorted());
 
 	return 0;
 }
