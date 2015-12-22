@@ -18,8 +18,8 @@ using namespace std;
 // Our data structure to hold the left, right index of the array we're sorting
 struct Data
 {
-	int left;
-	int right;
+	long left;
+	long right;
 };
 
 // threaded_arr: array for the the threaded version of quicksort
