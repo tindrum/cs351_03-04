@@ -34,7 +34,6 @@ bool threadPoolExit = false;
 
 int elementThreadRatio;
 
-pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t condVar = PTHREAD_COND_INITIALIZER;
@@ -46,7 +45,6 @@ void* threadPoolQuickSort(void* args)
 	int left = data.left, right = data.right;
 	int i = left, j = right;
 	
-	pthread_mutex_lock(&vectorMutex);
 	int tmp;
 	int pivot = threaded_arr[left + (right - left) / 2];
 
@@ -65,7 +63,6 @@ void* threadPoolQuickSort(void* args)
 			j--;
 		}
 	}
-	pthread_mutex_unlock(&vectorMutex);
 
 	// Add left partition to queue and signal a thread to process it
 	Data leftPart = {left, j};
@@ -76,9 +73,9 @@ void* threadPoolQuickSort(void* args)
 		if ((j - left) >= elementThreadRatio)
 		{
 			printf("sending {%i-%i}\n", left, j);
-			pthread_mutex_lock(&workerQueueMutex);
+
 			workerQueue.push_back(leftPart);
-			pthread_mutex_unlock(&workerQueueMutex);
+
 			pthread_cond_signal(&condVar);
 		}
 		else
@@ -96,9 +93,9 @@ void* threadPoolQuickSort(void* args)
 		if ((right - i) >= elementThreadRatio)
 		{
 			printf("sending {%i-%i}\n", i, right);
-			pthread_mutex_lock(&workerQueueMutex);
+
 			workerQueue.push_back(rightPart);
-			pthread_mutex_unlock(&workerQueueMutex);
+
 			pthread_cond_signal(&condVar);
 		}
 		else
@@ -178,38 +175,38 @@ void* threadPoolQuickSort(void* args)
 // 		threadedQuickSort(&rightPart);
 // }
 
-// void* serialQuickSort(void* args)
-// {
-// 	Data data = *((Data*) args);
-// 	int left = data.left, right = data.right;
-// 	int i = left, j = right;
+void* serialQuickSort(void* args)
+{
+	Data data = *((Data*) args);
+	int left = data.left, right = data.right;
+	int i = left, j = right;
 
-// 	if(left >= right) return NULL;
+	if(left >= right) return NULL;
 
-// 	int tmp;
-// 	int pivot = serial_arr[(left + right) / 2];
+	int tmp;
+	int pivot = serial_arr[(left + right) / 2];
 
-// 	while (i <= j)
-// 	{
-// 		while (serial_arr[i] < pivot) i++;
-// 		while (serial_arr[j] > pivot) j--;
+	while (i <= j)
+	{
+		while (serial_arr[i] < pivot) i++;
+		while (serial_arr[j] > pivot) j--;
 
-// 		if (i <= j)
-// 		{
-// 			tmp = serial_arr[i];
-// 			serial_arr[i] = serial_arr[j];
-// 			serial_arr[j] = tmp;
-// 			i++;
-// 			j--;
-// 		}
-// 	}
+		if (i <= j)
+		{
+			tmp = serial_arr[i];
+			serial_arr[i] = serial_arr[j];
+			serial_arr[j] = tmp;
+			i++;
+			j--;
+		}
+	}
 
-// 	Data leftPart = {left, j};
-// 	serialQuickSort(&leftPart);
+	Data leftPart = {left, j};
+	serialQuickSort(&leftPart);
 
-// 	Data rightPart = {i, right};
-// 	serialQuickSort(&rightPart);
-// }
+	Data rightPart = {i, right};
+	serialQuickSort(&rightPart);
+}
 
 /*
  * Each thread is born into this function. They will sleep the the condition variable <condVar>
@@ -222,40 +219,26 @@ void* threadPool(void* args)
 	Data work;
 	while (!threadPoolExit)
 	{
+		// Threads sleep here on <condVar>
 		pthread_mutex_lock(&threadPoolMutex);
 		while (!threadPoolExit && workerQueue.empty())
-		{
-			// Threads sleep here on <condVar>
 			pthread_cond_wait(&condVar, &threadPoolMutex);
 
-			// Do work as soon as a thread is signaled to wake (or if there's a spurious wakeup).
-			while (!workerQueue.empty())
-			{
-				pthread_mutex_lock(&workerQueueMutex);
-				work = workerQueue.front();
-				workerQueue.pop_front();
-				pthread_mutex_unlock(&workerQueueMutex);
-				threadPoolQuickSort(&work);
-				//printf("thread did work after wake\n");
-			}
-		}
+		// Begin working as soon as thread is signaled or queue is not empty
+		pthread_mutex_lock(&workerQueueMutex);
 		while (!workerQueue.empty())
 		{
-			pthread_mutex_lock(&workerQueueMutex);
 			work = workerQueue.front();
 			workerQueue.pop_front();
-			pthread_mutex_unlock(&workerQueueMutex);
+			
 			threadPoolQuickSort(&work);
-			//printf("thread did work when queue was not empty\n");
 		}
+		pthread_mutex_unlock(&workerQueueMutex);
+
 		pthread_mutex_unlock(&threadPoolMutex);	
 	}
 	if (workerQueue.empty())
-	{
 		pthread_exit(0);
-	}
-	else
-		printf("maybe this is the problem\n");
 }
 
 bool isSorted()
@@ -272,7 +255,8 @@ bool isSorted()
 }
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
 	// Sanity check for args
 	if (argc != 3) {
 		printf("usage %s <number of elements> <number of threads>\n", argv[0]);
@@ -286,78 +270,53 @@ int main(int argc, char *argv[]) {
 	elementThreadRatio = numberOfElements / numberOfThreads;
 
 	// Insert random ints into our array
-	for (int i = 0; i < numberOfElements; ++i) {
+	printf("inserting items into array...\n");
+	for (int i = 0; i < numberOfElements; ++i) 
+	{
 		int item = rand() % 1000000;
 		threaded_arr.push_back(item);
-		//serial_arr.push_back(item);
+		serial_arr.push_back(item);
 	}
 
 	int len = threaded_arr.size();
 	printf("length = %i\n", len);
 
-	// Timing the runtimes of threaded vs serial quick sort
-
-	// Data data = {0, len-1};
-	// chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();
-	// threadedQuickSort(&data);
-	// chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
-	// chrono::duration<double> elapsed_seconds_threaded = end-start;
-
-	// start = chrono::high_resolution_clock::now();
-	// serialQuickSort(&data);
-	// end = chrono::high_resolution_clock::now();
-	// chrono::duration<double> elapsed_seconds_serial = end-start;
-
-
-	// for (int i = 0; i < len; ++i)
-	// {
-	// 	printf("%i ", threaded_arr[i]);
-	// }
-	// printf("threaded quick sort time taken: %f\n", elapsed_seconds_threaded.count());
-	// printf("serial quick sort time taken: %f\n", elapsed_seconds_serial.count());
-
-	// for (int i = 0; i < threaded_arr.size(); ++i)
-	// {
-	// 	printf("%i ", threaded_arr[i]);
-	// }
-	// printf("\n");
-
-
 	pthread_t tid[numberOfThreads];
 
-	// Create <numberOfThreads> threads
-	for (int i = 0; i < numberOfThreads; ++i) {
+	// Create <numberOfThreads> threads and assign them to the threadPool
+	for (int i = 0; i < numberOfThreads; ++i) 
 		pthread_create(&tid[i], NULL, threadPool, NULL);
-		//printf("created thread %i\n", i);
-	}
 
 	// Push first indices of the vector bounds
 	Data data = {0, threaded_arr.size() - 1};
 	workerQueue.push_back(data);
 
 	// Begin timing
+	printf("running threaded quick sort...\n");
 	chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();
 	pthread_cond_signal(&condVar);
 
 	// Join all threads together
-	for (int i = 0; i < numberOfThreads; ++i) {
-		printf("thread: %i empty: %i\n", i, workerQueue.empty());
-		for (auto &&elem : workerQueue) {
-			printf("{%i, %i}", elem.left, elem.right);
-		}
-		printf("\n");
+	for (int i = 0; i < numberOfThreads; ++i) 
 		pthread_join(tid[i], NULL);
-	}
 
 	// End timing
 	chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
 	chrono::duration<double> elapsed_seconds_threaded = end-start;
+	printf("done\n\n");
 
-	len = threaded_arr.size();
-	printf("length = %i\n", len);
+	// Timing for serial quick sort
+	printf("running serial quick sort...\n");
+	start = chrono::high_resolution_clock::now();
+	serialQuickSort(&data);
+	end = chrono::high_resolution_clock::now();
+	chrono::duration<double> elapsed_seconds_serial = end-start;
+	printf("done\n\n");
 
 	printf("\nsorted: %i\n", isSorted());
 
-	printf("time taken %f\n", elapsed_seconds_threaded.count());
+	printf("threadpool time taken %f\n", elapsed_seconds_threaded.count());
+	printf("serial time taken %f\n", elapsed_seconds_serial.count());
+
 	return 0;
 }
