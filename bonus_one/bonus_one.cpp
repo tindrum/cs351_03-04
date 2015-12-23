@@ -32,6 +32,8 @@ list<Data> workerQueue;
 
 bool threadPoolExit = false;
 
+int elementThreadRatio;
+
 pthread_mutex_t vectorMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t threadPoolMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t workerQueueMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -46,7 +48,7 @@ void* threadPoolQuickSort(void* args)
 	
 	pthread_mutex_lock(&vectorMutex);
 	int tmp;
-	int pivot = threaded_arr[(left + right) / 2];
+	int pivot = threaded_arr[left + (right - left) / 2];
 
 	// Partitioning the array
 	while (i <= j)
@@ -65,28 +67,44 @@ void* threadPoolQuickSort(void* args)
 	}
 	pthread_mutex_unlock(&vectorMutex);
 
-	// Recursive call to sorting the left partition
+	// Add left partition to queue and signal a thread to process it
 	Data leftPart = {left, j};
 	if (left < j)
 	{
-		pthread_mutex_lock(&workerQueueMutex);
-		workerQueue.push_back(leftPart);
-		//printf("sent signal\n");
-		pthread_cond_signal(&condVar);
-		pthread_mutex_unlock(&workerQueueMutex);
-		//threadPoolQuickSort(&leftPart);
+		// Check to see if the array range is large enough to warrant a new thread.
+		// Else, do recursive call instead of pushing to work queue
+		if ((j - left) >= elementThreadRatio)
+		{
+			printf("sending {%i-%i}\n", left, j);
+			pthread_mutex_lock(&workerQueueMutex);
+			workerQueue.push_back(leftPart);
+			pthread_mutex_unlock(&workerQueueMutex);
+			pthread_cond_signal(&condVar);
+		}
+		else
+		{
+			threadPoolQuickSort(&leftPart);
+		}
 	}
 
-	// Recursive call to sorting the right partition
+	// Add right partition to queue and signal a thread to process it
 	Data rightPart = {i, right};
 	if (i < right)
 	{
-		pthread_mutex_lock(&workerQueueMutex);
-		workerQueue.push_back(rightPart);
-		//printf("sent signal\n");
-		pthread_cond_signal(&condVar);
-		pthread_mutex_unlock(&workerQueueMutex);
-		//threadPoolQuickSort(&rightPart);
+		// Check to see if the array range is large enough to warrant a new thread.
+		// Else, do recursive call instead of pushing to work queue
+		if ((right - i) >= elementThreadRatio)
+		{
+			printf("sending {%i-%i}\n", i, right);
+			pthread_mutex_lock(&workerQueueMutex);
+			workerQueue.push_back(rightPart);
+			pthread_mutex_unlock(&workerQueueMutex);
+			pthread_cond_signal(&condVar);
+		}
+		else
+		{
+			threadPoolQuickSort(&rightPart);
+		}
 	}
 
 	// This is key; our termination condition
@@ -98,7 +116,7 @@ void* threadPoolQuickSort(void* args)
 	        pthread_cond_broadcast(&condVar);
 	        //printf("all threads must exit now\n");
 	    }
-	    else if (!workerQueue.empty())
+	    else
 	    {
 	        pthread_cond_signal(&condVar);
 	        //printf("threads continuing\n");
@@ -205,14 +223,13 @@ void* threadPool(void* args)
 	while (!threadPoolExit)
 	{
 		pthread_mutex_lock(&threadPoolMutex);
-
 		while (!threadPoolExit && workerQueue.empty())
 		{
 			// Threads sleep here on <condVar>
 			pthread_cond_wait(&condVar, &threadPoolMutex);
 
 			// Do work as soon as a thread is signaled to wake (or if there's a spurious wakeup).
-			if (!workerQueue.empty())
+			while (!workerQueue.empty())
 			{
 				pthread_mutex_lock(&workerQueueMutex);
 				work = workerQueue.front();
@@ -221,9 +238,8 @@ void* threadPool(void* args)
 				threadPoolQuickSort(&work);
 				//printf("thread did work after wake\n");
 			}
-			pthread_mutex_unlock(&threadPoolMutex);
 		}
-		if (!workerQueue.empty())
+		while (!workerQueue.empty())
 		{
 			pthread_mutex_lock(&workerQueueMutex);
 			work = workerQueue.front();
@@ -231,17 +247,15 @@ void* threadPool(void* args)
 			pthread_mutex_unlock(&workerQueueMutex);
 			threadPoolQuickSort(&work);
 			//printf("thread did work when queue was not empty\n");
-			pthread_mutex_unlock(&threadPoolMutex);
 		}
+		pthread_mutex_unlock(&threadPoolMutex);	
 	}
-
-	// Exit if we have reached the end of the loop.
-	pthread_mutex_unlock(&threadPoolMutex);
 	if (workerQueue.empty())
 	{
-		threadPoolExit = true;
 		pthread_exit(0);
 	}
+	else
+		printf("maybe this is the problem\n");
 }
 
 bool isSorted()
@@ -269,6 +283,7 @@ int main(int argc, char *argv[]) {
 
 	int numberOfElements = atoi(argv[1]);
 	int numberOfThreads = atoi(argv[2]);
+	elementThreadRatio = numberOfElements / numberOfThreads;
 
 	// Insert random ints into our array
 	for (int i = 0; i < numberOfElements; ++i) {
