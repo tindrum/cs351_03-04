@@ -41,6 +41,9 @@ Now the client can be started:
 `./client`
 The client does not require parameters.
 
+A Makefile is included.
+`make clean` will remove object and executable files.
+`make` will create `server` and `client` executables.
 
 #### Whether you implemented the extra credit.
 This is our implementation for the basic program.

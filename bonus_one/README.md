@@ -20,6 +20,10 @@ To execute this program:
 e.g., to sort one thousand integers and four threads, use 
 `./quicksort 1000 4`
 
+Additionally, a `Makefile` is included.
+`make clean` will clean up object and executable files
+and 
+`make` will create the executable file `quicksort`.
 
 #### Whether you implemented the extra credit.
 This is our implementation for BONUS 1
