@@ -1,8 +1,15 @@
 Assignment 3 for CS 351 Section 3:
 -------
 
-Implement a multi-threaded quicksort that uses a thread pool similar to the hash table program.
+Implement a server to populate a hash from a database text file, 
+then listen on a pipe for requests for a record matching a database key (integer).
+The server also delivers the looked-up records through a separate pipe.
 
+A client connects to the pipe to send requests, and to another pipe to receive 
+looked-up records.
+
+The server uses mutexes to protect a particular linked list for one hash value.
+It locks that hash during access, but other threads can access other hash lists.
 
 #### Your name and email address.
 Project members:
