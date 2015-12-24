@@ -44,3 +44,5 @@
 *.exe
 *.out
 *.app
+.gitignore.orig
+server.cpp.orig
