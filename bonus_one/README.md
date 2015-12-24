@@ -16,9 +16,9 @@ This program is written in C++11.
 
 #### How to execute your program.
 To execute this program:
-`./quicksort <integer>`
-e.g., to sort one thousand integers, use 
-`./quicksort 1000`
+`./quicksort <arrayElements=integer> <threads=integer>`
+e.g., to sort one thousand integers and four threads, use 
+`./quicksort 1000 4`
 
 
 #### Whether you implemented the extra credit.
@@ -59,12 +59,17 @@ Before exit of `main()`, both total times are printed to the terminal.
 #### Anything special about your submission that we should take note of.
 ##### SPEED BENEFIT
 
-In our runs, no vector of integers below one billion elements showed improved performance for the threaded version over the serial version.
-This may be because we are not properly taking our threads from a thread pool. 
+For 250,000,000 elements, (a quarter of a billion), the time taken for threaded and serial were:
+threadpool time taken 82.230289
+serial time taken 82.457646
 
-_TODO: see if thread pool is used, implement if not, update timing paragraph if speed improves (or worsens)_
+Arrays above about one hundred thousand elements almost always show some very slightly
+shorter run time, but it is not significant.
 
-_TODO: implement as a template class that can work with any class/object that can be ordered, i.e. implements less-than, equal, and greater-than methods for comparison.
+We are not running threads concurrently, though technically we are using a thread pool.
+With more time, we would make threads run concurrently and would expect 
 
+This program relies on features of C++11 to measure timing, but those lines of code
+have been commented out of the version submitted.
 
 

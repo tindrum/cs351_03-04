@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
 
 	// Begin timing
 	printf("running threaded quick sort...\n");
-	chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();
+	// chrono::time_point<chrono::high_resolution_clock> start = chrono::high_resolution_clock::now();
 	pthread_cond_signal(&condVar);
 
 	// Join all threads together
@@ -255,16 +255,16 @@ int main(int argc, char *argv[])
 		pthread_join(tid[i], NULL);
 
 	// End timing
-	chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
-	chrono::duration<double> elapsed_seconds_threaded = end-start;
+	// chrono::time_point<chrono::high_resolution_clock> end = chrono::high_resolution_clock::now();
+	// chrono::duration<double> elapsed_seconds_threaded = end-start;
 	printf("done\n\n");
 
 	// Timing for serial quick sort
 	printf("running serial quick sort...\n");
-	start = chrono::high_resolution_clock::now();
+	// start = chrono::high_resolution_clock::now();
 	serialQuickSort(&data);
-	end = chrono::high_resolution_clock::now();
-	chrono::duration<double> elapsed_seconds_serial = end-start;
+	// end = chrono::high_resolution_clock::now();
+	// chrono::duration<double> elapsed_seconds_serial = end-start;
 	printf("done\n\n");
 
 	//for (int p = 0; p < threaded_arr.size(); p++){
@@ -273,8 +273,8 @@ int main(int argc, char *argv[])
 
 	printf("\nsorted: %i\n", isSorted());
 
-	printf("threadpool time taken %f\n", elapsed_seconds_threaded.count());
-	printf("serial time taken %f\n", elapsed_seconds_serial.count());
+	// printf("threadpool time taken %f\n", elapsed_seconds_threaded.count());
+	// printf("serial time taken %f\n", elapsed_seconds_serial.count());
 
 
 
