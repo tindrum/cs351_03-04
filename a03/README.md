@@ -1,4 +1,4 @@
-Assignment 3 Bonus 1 for CS 351 Section 3:
+Assignment 3 for CS 351 Section 3:
 -------
 
 Implement a multi-threaded quicksort that uses a thread pool similar to the hash table program.
