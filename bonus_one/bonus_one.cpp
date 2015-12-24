@@ -44,7 +44,7 @@ void* threadPoolQuickSort(void* args)
 	Data data = *((Data*) args);
 	int left = data.left, right = data.right;
 	int i = left, j = right;
-	
+
 	int tmp;
 	int pivot = threaded_arr[left + (right - left) / 2];
 
@@ -107,73 +107,23 @@ void* threadPoolQuickSort(void* args)
 	// This is key; our termination condition
 	if (i >= j)
 	{
-	    if (workerQueue.empty()) 
-	    {
-	        threadPoolExit = true;
-	        pthread_cond_broadcast(&condVar);
-	        //printf("all threads must exit now\n");
-	    }
-	    else
-	    {
-	        pthread_cond_signal(&condVar);
-	        //printf("threads continuing\n");
-	    }
-	    
-	    return NULL;
+		if (workerQueue.empty())
+		{
+			threadPoolExit = true;
+			pthread_cond_broadcast(&condVar);
+			//printf("all threads must exit now\n");
+		}
+		else
+		{
+			pthread_cond_signal(&condVar);
+			//printf("threads continuing\n");
+		}
+
+		return NULL;
 	}
 }
 
 
-// void* threadedQuickSort(void* args)
-// {
-// 	Data data = *((Data*) args);
-// 	int left = data.left, right = data.right;
-// 	int i = left, j = right;
-
-// 	int tmp;
-// 	int pivot = threaded_arr[(left + right) / 2];
-
-// 	while (i <= j)
-// 	{
-// 		while (threaded_arr[i] < pivot) i++;
-// 		while (threaded_arr[j] > pivot) j--;
-
-// 		if (i <= j)
-// 		{
-// 			tmp = threaded_arr[i];
-// 			threaded_arr[i] = threaded_arr[j];
-// 			threaded_arr[j] = tmp;
-// 			i++;
-// 			j--;
-// 		}
-// 	}
-
-// 	pthread_t tid1, tid2;
-
-// 	Data leftPart = {left, j};
-// 	if (threadCount < 4)
-// 	{
-// 		pthread_mutex_lock(&vectorMutex);
-// 		threadCount++;
-// 		pthread_mutex_unlock(&vectorMutex);
-// 		pthread_create(&tid1, NULL, threadedQuickSort, &leftPart);
-// 		pthread_join(tid1, NULL);
-// 	}
-// 	else
-// 		threadedQuickSort(&leftPart);
-
-// 	Data rightPart = {i, right};
-// 	if (threadCount < 4)
-// 	{
-// 		pthread_mutex_lock(&vectorMutex);
-// 		threadCount++;
-// 		pthread_mutex_unlock(&vectorMutex);
-// 		pthread_create(&tid2, NULL, threadedQuickSort, &rightPart);
-// 		pthread_join(tid2, NULL);
-// 	}
-// 	else
-// 		threadedQuickSort(&rightPart);
-// }
 
 void* serialQuickSort(void* args)
 {
@@ -230,12 +180,12 @@ void* threadPool(void* args)
 		{
 			work = workerQueue.front();
 			workerQueue.pop_front();
-			
+
 			threadPoolQuickSort(&work);
 		}
 		pthread_mutex_unlock(&workerQueueMutex);
 
-		pthread_mutex_unlock(&threadPoolMutex);	
+		pthread_mutex_unlock(&threadPoolMutex);
 	}
 	if (workerQueue.empty())
 		pthread_exit(0);
@@ -255,7 +205,7 @@ bool isSorted()
 }
 
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
 	// Sanity check for args
 	if (argc != 3) {
@@ -271,7 +221,7 @@ int main(int argc, char *argv[])
 
 	// Insert random ints into our array
 	printf("inserting items into array...\n");
-	for (int i = 0; i < numberOfElements; ++i) 
+	for (int i = 0; i < numberOfElements; ++i)
 	{
 		int item = rand() % 1000000;
 		threaded_arr.push_back(item);
@@ -284,7 +234,7 @@ int main(int argc, char *argv[])
 	pthread_t tid[numberOfThreads];
 
 	// Create <numberOfThreads> threads and assign them to the threadPool
-	for (int i = 0; i < numberOfThreads; ++i) 
+	for (int i = 0; i < numberOfThreads; ++i)
 		pthread_create(&tid[i], NULL, threadPool, NULL);
 
 	// Push first indices of the vector bounds
@@ -297,7 +247,7 @@ int main(int argc, char *argv[])
 	pthread_cond_signal(&condVar);
 
 	// Join all threads together
-	for (int i = 0; i < numberOfThreads; ++i) 
+	for (int i = 0; i < numberOfThreads; ++i)
 		pthread_join(tid[i], NULL);
 
 	// End timing
