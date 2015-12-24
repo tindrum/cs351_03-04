@@ -46,8 +46,10 @@ void* threadPoolQuickSort(void* args)
 	int i = left, j = right;
 
 	int tmp;
-	int pivot = threaded_arr[left + (right - left) / 2];
+	int pivot_point = left + ((right - left) / 2);
+	int pivot = threaded_arr[pivot_point];
 
+	// printf("*** sorting elements {%i-%i} around pivot at index %i **\n", left, right, pivot_point);
 	// Partitioning the array
 	while (i <= j)
 	{
@@ -72,7 +74,7 @@ void* threadPoolQuickSort(void* args)
 		// Else, do recursive call instead of pushing to work queue
 		if ((j - left) >= elementThreadRatio)
 		{
-			printf("sending {%i-%i}\n", left, j);
+			// printf("pushing {%i-%i} to workerQueue\n", left, j);
 
 			workerQueue.push_back(leftPart);
 
@@ -92,7 +94,7 @@ void* threadPoolQuickSort(void* args)
 		// Else, do recursive call instead of pushing to work queue
 		if ((right - i) >= elementThreadRatio)
 		{
-			printf("sending {%i-%i}\n", i, right);
+			// printf("pushing {%i-%i} to workerQueue\n", i, right);
 
 			workerQueue.push_back(rightPart);
 
@@ -105,7 +107,7 @@ void* threadPoolQuickSort(void* args)
 	}
 
 	// This is key; our termination condition
-	if (i >= j)
+	if (i >= (j - 1))
 	{
 		if (workerQueue.empty())
 		{
@@ -183,7 +185,7 @@ void* threadPool(void* args)
 
 			threadPoolQuickSort(&work);
 		}
-		pthread_mutex_unlock(&workerQueueMutex);
+  		pthread_mutex_unlock(&workerQueueMutex);
 
 		pthread_mutex_unlock(&threadPoolMutex);
 	}
@@ -239,6 +241,8 @@ int main(int argc, char *argv[])
 
 	// Push first indices of the vector bounds
 	Data data = {0, threaded_arr.size() - 1};
+	printf("\nFirst push to workerQueue:\npushing {%i-%i} to workerQueue\n", data.left, data.right);
+
 	workerQueue.push_back(data);
 
 	// Begin timing
@@ -263,10 +267,16 @@ int main(int argc, char *argv[])
 	chrono::duration<double> elapsed_seconds_serial = end-start;
 	printf("done\n\n");
 
+	//for (int p = 0; p < threaded_arr.size(); p++){
+	//	printf("index[%i] = %i\n", p, threaded_arr[p]);
+	//}
+
 	printf("\nsorted: %i\n", isSorted());
 
 	printf("threadpool time taken %f\n", elapsed_seconds_threaded.count());
 	printf("serial time taken %f\n", elapsed_seconds_serial.count());
+
+
 
 	return 0;
 }
